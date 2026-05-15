@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const todoSchema = new mongoose.Schema(
+const subTodoSchema = new mongoose.Schema(
   {
     content: {
       type: String,
@@ -14,14 +14,10 @@ const todoSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    subTodo: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "SubTodo",
-      },
-    ],
   },
-  { timeseries: true },
+  { timestamps: true },
 );
 
-export const Todo = mongoose.model("Todo", todoSchema);
+export const SubTodo = mongoose.model("SubTodo", subTodoSchema);
+
+// ! Lec_04 Completed....
