@@ -19,6 +19,3 @@ const productSchema = new mongoose.Schema(
 );
 
 export const Product = mongoose.model("Product", productSchema);
-
-
-// ! 19:30 Lec_05 E-commerce and Hospital management Data modelling
