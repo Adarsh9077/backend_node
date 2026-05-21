@@ -19,5 +19,3 @@ const subTodoSchema = new mongoose.Schema(
 );
 
 export const SubTodo = mongoose.model("SubTodo", subTodoSchema);
-
-// ! Lec_04 Completed....

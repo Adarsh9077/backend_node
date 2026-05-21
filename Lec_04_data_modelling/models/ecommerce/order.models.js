@@ -31,5 +31,3 @@ const orderSchema = new mongoose.Schema(
 );
 
 export const Order = mongoose.model("Order", orderSchema);
-
-// ! 28:30 Lec_05 E-commerce and Hospital management Data modelling
