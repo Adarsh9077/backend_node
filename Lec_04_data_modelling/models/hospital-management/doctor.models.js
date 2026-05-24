@@ -6,7 +6,7 @@ const doctorSchema = new mongoose.Schema(
     salary: { type: String, required: true },
     qualification: { type: String, required: true },
     experienceInYears: { type: Number, required: true },
-    worksInHospitals: [{ type: mongoose.Types.ObjectId, ref: "Hospital" }],
+    worksInHospitals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Hospital" }],
   },
   { timestamps: true },
 );
