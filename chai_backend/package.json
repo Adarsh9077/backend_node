@@ -1,0 +1,19 @@
+{
+  "name": "chai_backend",
+  "version": "1.0.0",
+  "description": "A backend from chai_or_code serices",
+  "keywords": [
+    "node"
+  ],
+  "license": "ISC",
+  "author": "adarsh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3"
+  }
+}
