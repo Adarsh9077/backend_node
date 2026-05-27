@@ -1,12 +1,14 @@
-import mongoose from "mongoose";
-import { DB_NAME } from "./constants";
 import express from "express";
+import connectDB from "./db/db_helper.js";
 
 const app = express();
 
+console.log("MONGODB_URI:", process.env.MONGODB_URI);
+
 (async () => {
+  console.log("\n->\tConnecting to MongoDB...");
   try {
-    await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`);
+    await connectDB();
     app.on("error", (error) => {
       console.log("Error:->", error);
       throw error;
@@ -20,4 +22,4 @@ const app = express();
   }
 })();
 
-// ! Lec_07 22:30 How to connect database in MERN with debugging
+// ! Lec_08 00:00 Custom api response and error handling
