@@ -28,4 +28,4 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-// ! Lec_08 38:45 Custom api response and error handling
+// ! Lec_09 15:10 User and video model with hooks and JWT
