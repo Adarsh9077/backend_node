@@ -83,5 +83,3 @@ userSchema.methods.generateRefreshToken = function () {
 };
 
 export const User = mongoose.model("User", userSchema);
-
-// ! Lec_09 37:20 User and video model with hooks and JWT

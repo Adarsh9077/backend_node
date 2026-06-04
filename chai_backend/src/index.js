@@ -27,5 +27,3 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
     throw error;
   }
 })();
-
-// ! Lec_09 15:10 User and video model with hooks and JWT
