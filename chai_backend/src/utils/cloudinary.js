@@ -23,4 +23,3 @@ const uploadOnCloudinary = async (localFilePath) => {
 };
 
 export { uploadOnCloudinary };
-//! Lec_10 26:40 How to upload file in backend
