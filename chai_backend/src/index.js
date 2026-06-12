@@ -8,7 +8,8 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
     await connectDB()
       .then(() => {
         app.listen(process.env.PORT, () => {
-          console.log(`Server is running at port: `);
+          console.log(`Server is running at port: ${process.env.PORT}`);
+          console.log(`\n\nhttp://localhost:${process.env.PORT}`);
         });
       })
       .catch((err) => {
@@ -28,4 +29,4 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-//! Lec_12 14:40 Complete guide for router and controller with debugging
+//! Lec_13 00:00 Logic building | Register controller
