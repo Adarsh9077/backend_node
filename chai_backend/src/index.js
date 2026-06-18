@@ -29,10 +29,8 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-//! Lec_13 00:00 Logic building | Register controller
-
+//! 22:45 Lec_14 How to use postman for backend
 
 //? Step: 1 user(email,password,username,mobile No.)
-//? step:2 save to db 
+//? step:2 save to db
 //? step:3 send response to client (registration completed , pending , failed )
-
