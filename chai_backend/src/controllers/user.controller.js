@@ -69,6 +69,20 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User register successfully"));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, username, password } = req.body;
+  if (!username || !email) {
+    const user = await User.findOne({ $or: [{ username }, { email }] });
+  }
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+  const isPasswordValidate = await user.isPasswordCorrect(password);
+  if (!isPasswordValidate) {
+    throw new ApiError(401, "Invalid user credentials");
+  }
+});
 
-// ? 00:00 Lec_15 Access Refresh Token, Middleware and cookies in Backend
+export { registerUser, loginUser };
+
+// ? 17:35 Lec_15 Access Refresh Token, Middleware and cookies in Backend
