@@ -4,6 +4,19 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+const generateAccessAndRefreshToken = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const refreshToken = user.generateRefreshToken();
+    const accessToken = user.generateAccessToken();
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating refresh and access token"
+    );
+  }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   //   res.status(200).json({
   //     message: "ok",
@@ -70,6 +83,13 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
+  // ! req body -> data
+  // ! username or email
+  // ! find the user
+  // ! password check
+  // ! access and refresh token
+  // ! send cookie
+
   const { email, username, password } = req.body;
   if (!username || !email) {
     const user = await User.findOne({ $or: [{ username }, { email }] });
@@ -85,4 +105,4 @@ const loginUser = asyncHandler(async (req, res) => {
 
 export { registerUser, loginUser };
 
-// ? 17:35 Lec_15 Access Refresh Token, Middleware and cookies in Backend
+// ? 21:55 Lec_15 Access Refresh Token, Middleware and cookies in Backend
