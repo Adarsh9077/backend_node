@@ -9,6 +9,9 @@ const generateAccessAndRefreshToken = async (userId) => {
     const user = await User.findById(userId);
     const refreshToken = user.generateRefreshToken();
     const accessToken = user.generateAccessToken();
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+    return { accessToken, refreshToken };
   } catch (error) {
     throw new ApiError(
       500,
@@ -101,8 +104,15 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!isPasswordValidate) {
     throw new ApiError(401, "Invalid user credentials");
   }
+  const { refreshToken, accessToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
+
+  const loggedInUser = User.findById(user._id).select(
+    "-password -refreshToken"
+  );
 });
 
 export { registerUser, loginUser };
 
-// ? 21:55 Lec_15 Access Refresh Token, Middleware and cookies in Backend
+// ? 28:30 Lec_15 Access Refresh Token, Middleware and cookies in Backend
