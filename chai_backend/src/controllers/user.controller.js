@@ -25,7 +25,7 @@ const registerUser = asyncHandler(async (req, res) => {
   //     message: "ok",
   //   });
   //? get user detail from frontend
-  //? Validation not not empty
+  //? Validation not not-empty
   //? Check User already exists: username email
   //? Check for image, Check for Avatar
   //? Upload them cloudinary, avatar
@@ -111,7 +111,24 @@ const loginUser = asyncHandler(async (req, res) => {
   const loggedInUser = User.findById(user._id).select(
     "-password -refreshToken"
   );
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken)
+    .cookie("refreshToken", refreshToken)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "User Logged in successfully"
+      )
+    );
 });
+
+const logoutUser = asyncHandler(async (req, res) => {});
 
 export { registerUser, loginUser };
 
