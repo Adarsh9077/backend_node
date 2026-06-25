@@ -29,7 +29,7 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-//! 51:35 Lec_15 Access Refresh Token, Middleware and cookies in Backend
+//! 00:00 Lec_16 Access token and refresh token in Backend
 
 //? Step: 1 user(email,password,username,mobile No.)
 //? step:2 save to db
