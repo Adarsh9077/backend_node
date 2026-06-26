@@ -13,6 +13,7 @@ const generateAccessAndRefreshToken = async (userId) => {
     await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
+    console.error("generateAccessAndRefreshToken Error:", error);
     throw new ApiError(
       500,
       "Something went wrong while generating refresh and access token"
@@ -94,9 +95,10 @@ const loginUser = asyncHandler(async (req, res) => {
   // ! send cookie
 
   const { email, username, password } = req.body;
-  if (!username || !email) {
-    const user = await User.findOne({ $or: [{ username }, { email }] });
+  if (!username && !email) {
+    throw new ApiError(400, "username or mail required");
   }
+  const user = await User.findOne({ $or: [{ username }, { email }] });
   if (!user) {
     throw new ApiError(404, "User does not exist");
   }
@@ -108,7 +110,7 @@ const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
 
-  const loggedInUser = User.findById(user._id).select(
+  const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
   const options = {
@@ -129,7 +131,8 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  User.findByIdAndUpdate(
+  console.log(`user ID: ${req.user._id}`);
+  await User.findByIdAndUpdate(
     req.user._id,
     { $set: { refreshToken: undefined } },
     { new: true }
