@@ -29,7 +29,7 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-//! 18:30 Lec_16 Access token and refresh token in Backend
+//! 00:00 Lec_17 Writing update controllers for user | Backend with JS
 
 //? Step: 1 user(email,password,username,mobile No.)
 //? step:2 save to db

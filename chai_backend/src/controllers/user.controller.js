@@ -152,18 +152,44 @@ const refreshTokenAccessToken = asyncHandler(async (req, res, next) => {
   if (!incomingRefreshToken) {
     throw new ApiError(401, "Unauthorized request");
   }
-  const decodedToken = jwt.verify(
-    incomingRefreshToken,
-    process.env.REFRESH_TOKEN_SECRET
-  );
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
 
-  const user = await User.findById(decodedToken?._id);
+    const user = await User.findById(decodedToken?._id);
 
-  if (!user) {
-    throw new ApiError(401, "Invalid Refresh Token");
+    if (!user) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh token is expired or used");
+    }
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    const { accessToken, newRefreshToken } =
+      await generateAccessAndRefreshToken(user?._id);
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, option)
+      .cookie("refreshToken", newRefreshToken, option)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: newRefreshToken },
+          "Access Token refreshed"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
   }
 });
 
-export { registerUser, loginUser, logoutUser };
+export { registerUser, loginUser, logoutUser, refreshTokenAccessToken };
 
-// ? 18:30 Lec_16 Access token and refresh token in Backend
+// ? 00:00 Lec_17 Writing update controllers for user | Backend with JS
