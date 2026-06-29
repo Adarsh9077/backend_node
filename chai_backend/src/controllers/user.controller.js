@@ -190,6 +190,8 @@ const refreshTokenAccessToken = asyncHandler(async (req, res, next) => {
   }
 });
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {});
+
 export { registerUser, loginUser, logoutUser, refreshTokenAccessToken };
 
-// ? 00:00 Lec_17 Writing update controllers for user | Backend with JS
+// ? 13:00 Lec_17 Writing update controllers for user | Backend with JS
