@@ -198,8 +198,13 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Invalid old password");
   }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
 export { registerUser, loginUser, logoutUser, refreshTokenAccessToken };
 
-// ? 13:00 Lec_17 Writing update controllers for user | Backend with JS
+// ? 18:50 Lec_17 Writing update controllers for user | Backend with JS

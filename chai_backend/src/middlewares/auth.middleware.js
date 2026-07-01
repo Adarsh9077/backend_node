@@ -27,5 +27,3 @@ export const verifyJWT = async (req, res, next) => {
     throw new ApiError(401, "Invalid Access Token");
   }
 };
-
-// ? 51:35 Lec_15 Access Refresh Token, Middleware and cookies in Backend
