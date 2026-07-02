@@ -205,6 +205,31 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
-export { registerUser, loginUser, logoutUser, refreshTokenAccessToken };
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+});
 
-// ? 18:50 Lec_17 Writing update controllers for user | Backend with JS
+const updateAccountDetail = asyncHandler(async (req, res) => {
+  const { email, fullName } = req.body;
+  if (!email || !fullName) {
+    throw new ApiError(401, "All fields are required");
+  }
+  const user = await User.findByIdAndUpdate(
+    req.user?.id,
+    { $set: { fullName, email } },
+    { new: true }
+  );
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshTokenAccessToken,
+  changeCurrentPassword,
+  getCurrentUser,
+};
+
+// ? 26:45 Lec_17 Writing update controllers for user | Backend with JS
