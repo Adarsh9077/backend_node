@@ -193,7 +193,7 @@ const refreshTokenAccessToken = asyncHandler(async (req, res, next) => {
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   // req.cookies.accessToken || req.header.
   const { oldPassword, newPassword } = req.body;
-  const user = await User.findById(req.user?.id);
+  const user = await User.findById(req.user?._id);
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Invalid old password");
@@ -217,10 +217,23 @@ const updateAccountDetail = asyncHandler(async (req, res) => {
     throw new ApiError(401, "All fields are required");
   }
   const user = await User.findByIdAndUpdate(
-    req.user?.id,
+    req.user?._id,
     { $set: { fullName, email } },
     { new: true }
-  );
+  ).select("-password");
+  return res.status(200).json(200, user, "Account details update successfully");
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+  if (!avatarLocalPath) {
+    throw new ApiError(401, "Avatar file is missing");
+  }
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+  if (!avatar.url) {
+    throw new ApiError(400, "Error while uploading on avatar");
+  }
 });
 
 export {
