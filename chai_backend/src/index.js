@@ -29,7 +29,7 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-//! 26:45  Lec_17 Writing update controllers for user | Backend with JS
+//! 34:20  Lec_17 Writing update controllers for user | Backend with JS
 
 //? Step: 1 user(email,password,username,mobile No.)
 //? step:2 save to db
