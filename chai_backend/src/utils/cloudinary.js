@@ -23,4 +23,18 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
+const deleteOnCloudinary = async (publicUrl) => {
+  try {
+    if (!publicUrl || typeof publicUrl !== "string") {
+      return null;
+    }
+    const result = await cloudinary.uploader.destroy(publicUrl);
+    console.log(`Deleted: ${publicId}`, result);
+    return result;
+  } catch (error) {
+    console.error("Error deleting single asset:", err.message);
+    throw error;
+  }
+};
+
 export { uploadOnCloudinary };

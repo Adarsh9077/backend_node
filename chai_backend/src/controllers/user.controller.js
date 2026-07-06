@@ -221,7 +221,9 @@ const updateAccountDetail = asyncHandler(async (req, res) => {
     { $set: { fullName, email } },
     { new: true }
   ).select("-password");
-  return res.status(200).json(200, user, "Account details update successfully");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account details update successfully"));
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
@@ -275,4 +277,4 @@ export {
   getCurrentUser,
 };
 
-// ? 34:20 Lec_17 Writing update controllers for user | Backend with JS
+// ? 04:00 Lec_18 Understand the subscription Schema | Backend with JS
