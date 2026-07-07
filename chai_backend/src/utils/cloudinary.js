@@ -37,4 +37,4 @@ const deleteOnCloudinary = async (publicUrl) => {
   }
 };
 
-export { uploadOnCloudinary };
+export { uploadOnCloudinary, deleteOnCloudinary };
