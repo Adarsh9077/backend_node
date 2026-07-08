@@ -29,7 +29,7 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-// ! 04:00 Lec_18 Understand the subscription Schema | Backend with JS
+// ! 06:00 Lec_19 Learn Mongodb aggregation pipelines | Backend with JS
 
 //? Step: 1 user(email,password,username,mobile No.)
 //? step:2 save to db
