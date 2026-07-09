@@ -272,6 +272,13 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Cover image update successfully"));
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  if (!username?.trim()) {
+    throw new ApiError(400, "username is missing");
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -279,7 +286,9 @@ export {
   refreshTokenAccessToken,
   changeCurrentPassword,
   getCurrentUser,
+  updateAccountDetail,
+  updateUserAvatar,
   updateUserCoverImage,
 };
 
-// ? 06:00 Lec_19 Learn Mongodb aggregation pipelines | Backend with JS
+// ? 16:40 Lec_19 Learn Mongodb aggregation pipelines | Backend with JS
