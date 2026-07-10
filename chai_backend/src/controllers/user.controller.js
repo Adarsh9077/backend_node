@@ -277,6 +277,35 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   if (!username?.trim()) {
     throw new ApiError(400, "username is missing");
   }
+  const channel = await User.aggregate([
+    {
+      $match: {
+        username: username?.toLowerCase(),
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: { $size: "$subscribers" },
+        channelsSubscribedToCount: { $size: "$subscribedTo" },
+      },
+    },
+  ]);
 });
 
 export {
@@ -291,4 +320,4 @@ export {
   updateUserCoverImage,
 };
 
-// ? 16:40 Lec_19 Learn Mongodb aggregation pipelines | Backend with JS
+// ? 25:20 Lec_19 Learn Mongodb aggregation pipelines | Backend with JS
