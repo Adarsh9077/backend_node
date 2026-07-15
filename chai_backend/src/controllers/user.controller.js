@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -336,6 +337,16 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, channel, "User channel fetched successfully"));
 });
 
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+  ]);
+});
+
 export {
   registerUser,
   loginUser,
@@ -348,4 +359,4 @@ export {
   updateUserCoverImage,
 };
 
-// ? 25:2 get 0 Lec_19 Learn Mongodb aggregation pipelines | Backend with JS
+// ? 08:00 Lec_20 How to write sub pipelines and routes | Backend with JS
