@@ -344,6 +344,25 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         _id: new mongoose.Types.ObjectId(req.user._id),
       },
     },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [{ $project: { fullName: 1, username: 1, avatar: 1 } }],
+            },
+          },
+        ],
+      },
+    },
   ]);
 });
 
@@ -359,4 +378,4 @@ export {
   updateUserCoverImage,
 };
 
-// ? 08:00 Lec_20 How to write sub pipelines and routes | Backend with JS
+// ? 12:55 Lec_20 How to write sub pipelines and routes | Backend with JS
