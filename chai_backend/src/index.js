@@ -29,8 +29,8 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
   }
 })();
 
-//! 16:00 Lec_22 MongoDB models for like playlist and tweet | Backend with JS
-
+//! 04:00 Lec_23 Build in public and open source | Only video that you need  | Backend with JS
+// *  9555491667 message this no.
 //? Step: 1 user(email,password,username,mobile No.)
 //? step:2 save to db
 //? step:3 send response to client (registration completed , pending , failed )
