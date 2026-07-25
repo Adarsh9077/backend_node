@@ -24,12 +24,12 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI);
     //   console.log(`App running on port:${process.env.PORT}`);
     // });
   } catch (error) {
-    console.error("Fhhhaaaaa Error", error);
+    console.error("Error in start methods", error);
     throw error;
   }
 })();
 
-//! 04:00 Lec_23 Build in public and open source | Only video that you need  | Backend with JS
+//! 06:00 Lec_23 Build in public and open source | Only video that you need  | Backend with JS
 // *  9555491667 message this no.
 //? Step: 1 user(email,password,username,mobile No.)
 //? step:2 save to db
