@@ -9,3 +9,13 @@ const getVideoComments = asyncHandler(async (req, res) => {
 const addComment = asyncHandler(async (req, res) => {
   //Todo: add a comment to a video
 });
+
+const updateComment = asyncHandler(async (req, res) => {
+  //Todo: update a comment
+});
+
+const deleteComment = asyncHandler(async (req, res) => {
+  //Todo: delete a comment
+});
+
+export { getVideoComments, addComment, updateComment, deleteComment };
