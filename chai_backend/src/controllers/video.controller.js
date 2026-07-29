@@ -18,15 +18,29 @@ const publishAVideo = asyncHandler(async (req, res) => {
   console.log(
     `title -> ${title}\ndescription -> ${description}\n- \t----------\t -\n`
   );
+  // console.log(req);
   //   Todo: get video , upload on cloudinary, create video
-  const videoFileLocalPath = req.files?.videoFile[0]?.path;
-  const thumbnailLocalPath = req.files?.thumbnail[0]?.path;
+  let videoFileLocalPath /*= req.files?.videoFile[0]?.path*/;
+
+  if (req.files && req.files.videoFile && req.files.videoFile.length > 0) {
+    videoFileLocalPath = req.files.videoFile[0].path;
+  }
+  let thumbnailLocalPath /* = req.files?.thumbnail[0]?.path*/;
+
+  if (req.files && req.files.thumbnail && req.files.thumbnail.length > 0) {
+    thumbnailLocalPath = req.files.thumbnail[0].path;
+  }
+
+  console.log(`${videoFileLocalPath} <----> ${thumbnailLocalPath}`);
 
   if (!videoFileLocalPath && !thumbnailLocalPath) {
     throw new ApiError(400, "video file and thumbnail is required");
   }
-  // fs.unlinkSync(videoFileLocalPath);
-  // fs.unlinkSync(thumbnailLocalPath);
+  
+
+
+  fs.unlinkSync(videoFileLocalPath);
+  fs.unlinkSync(thumbnailLocalPath);
 
   return res
     .status(200)

@@ -47,7 +47,12 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existingUser) {
     throw new ApiError(409, "User with email or username already exists");
   }
-  const avatarLocalPath = req.files?.avatar[0]?.path;
+  let avatarLocalPath;
+  // const avatarLocalPath = req.files?.avatar[0]?.path;
+  if (req.files && req.files.avatar && req.files.avatar.length > 0) {
+    avatarLocalPath = req.files.avatar[0].path;
+  }
+  console.log(avatarLocalPath);
   // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
   let coverImageLocalPath;
@@ -63,12 +68,18 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar file is required");
   }
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+
+  let coverImage = null;
+  if (coverImageLocalPath) {
+    coverImage = await uploadOnCloudinary(coverImageLocalPath);
+  }
 
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
   }
-
+  console.log("before next is log");
+  // next();
+  console.log("after next is log");
   const user = await User.create({
     fullName,
     avatar: avatar.url,
@@ -146,6 +157,17 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logged Out"));
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+  const query = { email: `${req.user.email}` };
+
+  const result = await User.deleteOne(query);
+  console.log(await result.deletedCount);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "user account delete successfully"));
 });
 
 const refreshTokenAccessToken = asyncHandler(async (req, res, next) => {
@@ -382,6 +404,7 @@ export {
   registerUser,
   loginUser,
   logoutUser,
+  deleteUser,
   refreshTokenAccessToken,
   changeCurrentPassword,
   getCurrentUser,

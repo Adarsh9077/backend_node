@@ -3,6 +3,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  deleteUser,
   refreshTokenAccessToken,
   changeCurrentPassword,
   updateUserCoverImage,
@@ -29,6 +30,7 @@ router.route("/login").post(loginUser);
 
 //? Secure routers
 router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/delete-user").delete(verifyJWT, deleteUser);
 router.route("/refresh-token").post(refreshTokenAccessToken);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 router.route("/current-user").post(verifyJWT, getCurrentUser);
