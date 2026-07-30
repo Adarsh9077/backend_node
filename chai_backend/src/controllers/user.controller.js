@@ -260,12 +260,15 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!avatar.url) {
     throw new ApiError(400, "Error while uploading on avatar");
   }
+  const oldAvatarImagePath = req.user?.avatar;
+
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     { $set: { avatar: avatar.url } },
     { new: true }
   ).select("-password");
-
+  const deleteResult = await deleteOnCloudinary(oldAvatarImagePath);
+  console.log("Delete result:-> " + deleteResult);
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Avatar update successfully"));

@@ -2,6 +2,8 @@ import fs from "fs";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
+import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
+import { Video } from "../models/video.model.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy } = req.query;
@@ -34,17 +36,29 @@ const publishAVideo = asyncHandler(async (req, res) => {
   console.log(`${videoFileLocalPath} <----> ${thumbnailLocalPath}`);
 
   if (!videoFileLocalPath && !thumbnailLocalPath) {
-    throw new ApiError(400, "video file and thumbnail is required");
+    throw new ApiError(400, "video file and thumbnail are required");
   }
-  
 
+  const videoFileLink = await uploadOnCloudinary(videoFileLocalPath);
+  const thumbnailLink = await uploadOnCloudinary(thumbnailLocalPath);
 
-  fs.unlinkSync(videoFileLocalPath);
-  fs.unlinkSync(thumbnailLocalPath);
+  const videoObject = await Video.create({
+    videoFile: videoFileLink.url,
+    thumbnail: thumbnailLink.url,
+    title,
+    description,
+    duration: videoFileLink.duration,
+    owner: req.user._id,
+  });
+
+  const video = await Video.findById(videoObject._id).populate({
+    path: "owner",
+    select: "username email fullname avatar coverImage",
+  });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "checking publish a video"));
+    .json(new ApiResponse(200, video, "video uploaded successfully"));
 });
 
 const getVideoById = asyncHandler(async (req, res) => {
