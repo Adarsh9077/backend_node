@@ -1,18 +1,30 @@
-import fs from "fs";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
+import mongoose from "mongoose";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy } = req.query;
-  console.log(req.query.bool);
-  // const listOfVideos = await
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "checking getAllVideos"));
-  //   Todo: get all videos based on query, sort, pagination
+  console.log(req.query);
+
+  try {
+    //   Todo: get all videos based on query, sort, pagination
+    const videoList = await Video.find({}).populate({
+      path: "owner",
+      select: "username email fullname avatar coverImage",
+    });
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { videos: videoList }, "checking getAllVideos")
+      );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(new ApiError(500, {}, "enable to load video list"));
+  }
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
@@ -68,10 +80,17 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  console.log(req.params);
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "checking getVideoById"));
+  try {
+    const videoObject = await Video.findById(videoId).populate({
+      path: "owner",
+      select: "username email fullname avatar coverImage",
+    });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, videoObject, "checking getVideoById"));
+  } catch (error) {
+    return res.status(500).json(new ApiError(500, {}, "Video not found"));
+  }
   //   Todo: get video by id
 });
 
@@ -82,6 +101,74 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+
+  // Start a session for transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const videoObject = await Video.findById(videoId).session(session);
+
+    if (!videoObject) {
+      throw new ApiError(404, "Video not found");
+    }
+
+    // Check ownership
+    if (videoObject.owner.toString() !== req.user._id.toString()) {
+      throw new ApiError(403, "Not authorized");
+    }
+
+    // Try Cloudinary deletion first
+    let cloudinarySuccess = true;
+    let errorMessages = [];
+
+    if (videoObject.videoFile) {
+      const result = await deleteOnCloudinary(videoObject.videoFile);
+      if (!result.success) {
+        cloudinarySuccess = false;
+        errorMessages.push(`Video: ${result.message}`);
+      }
+    }
+
+    if (videoObject.thumbnail) {
+      const result = await deleteOnCloudinary(videoObject.thumbnail);
+      if (!result.success) {
+        cloudinarySuccess = false;
+        errorMessages.push(`Thumbnail: ${result.message}`);
+      }
+    }
+
+    // If Cloudinary deletion fails, don't delete from DB
+    if (!cloudinarySuccess) {
+      throw new ApiError(
+        500,
+        `Cloudinary deletion failed: ${errorMessages.join(", ")}`
+      );
+    }
+
+    // Delete from database
+    const deletedVideo =
+      await Video.findByIdAndDelete(videoId).session(session);
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { videoId: deletedVideo._id },
+          "Video deleted successfully"
+        )
+      );
+  } catch (error) {
+    // Rollback transaction on any error
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
@@ -89,7 +176,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
   console.log(req.params);
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, "Delete a video controller"));
+    .json(new ApiResponse(200, {}, "toggle published video controller"));
 });
 
 export {
