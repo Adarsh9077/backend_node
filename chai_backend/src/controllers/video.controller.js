@@ -174,9 +174,30 @@ const deleteVideo = asyncHandler(async (req, res) => {
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   console.log(req.params);
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "toggle published video controller"));
+  try {
+    const videoObject = await Video.findById(videoId);
+    if (!videoObject) {
+      throw new ApiError(404, "Video not found");
+    }
+
+    // Check ownership
+    if (videoObject.owner.toString() !== req.user._id.toString()) {
+      throw new ApiError(403, "Not authorized");
+    }
+    console.log(!videoObject.isPublish);
+    
+    const video = await Video.findByIdAndUpdate(req.user._id, {
+      $set: { isPublish: !videoObject.isPublish },
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "toggle published video controller"));
+  } catch (error) {
+    return res
+      .status(500)
+      .json(new ApiError(500, "Enable to change video state"));
+  }
 });
 
 export {

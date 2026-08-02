@@ -33,7 +33,7 @@ router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/delete-user").delete(verifyJWT, deleteUser);
 router.route("/refresh-token").post(refreshTokenAccessToken);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
-router.route("/current-user").post(verifyJWT, getCurrentUser);
+router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/update-account").patch(verifyJWT, updateAccountDetail);
 router
   .route("/avatar")

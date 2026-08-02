@@ -48,11 +48,15 @@ const deleteOnCloudinary = async (publicUrl) => {
     // Public ID: iggmbtnzlcgr9y2nypjd
     const publicId = extractPublicId(publicUrl);
 
+    const isVideo = publicUrl.includes("/video/upload/");
+
     if (!publicId) {
       return { success: false, message: "Could not extract public ID" };
     }
 
-    const result = await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: isVideo ? "video" : "image",
+    });
     console.log(`Deletion result for ${publicId}:`, result);
 
     // Cloudinary returns: { result: 'ok' } or { result: 'not found' }
