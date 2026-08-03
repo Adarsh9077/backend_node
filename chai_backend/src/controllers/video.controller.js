@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
+import fs from "fs";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy } = req.query;
@@ -13,7 +14,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     //   Todo: get all videos based on query, sort, pagination
     const videoList = await Video.find({}).populate({
       path: "owner",
-      select: "username email fullname avatar coverImage",
+      select: "username email fullName avatar coverImage",
     });
     return res
       .status(200)
@@ -28,18 +29,33 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, isPublished } = req.body;
   console.log(
     `title -> ${title}\ndescription -> ${description}\n- \t----------\t -\n`
   );
 
   try {
     let videoFileLocalPath;
-
+    let thumbnailLocalPath /* = req.files?.thumbnail[0]?.path*/;
+    // 1. VALIDATE INPUT FIELDS
+    if (!title || !description || typeof isPublished !== "boolean") {
+      // Clean up any uploaded files if validation fails
+      if (req.files) {
+        if (req.files.videoFile) {
+          fs.unlinkSync(req.files.videoFile[0].path);
+        }
+        if (req.files.thumbnail) {
+          fs.unlinkSync(req.files.thumbnail[0].path);
+        }
+      }
+      throw new ApiError(
+        400,
+        "Title, description, and isPublished are required"
+      );
+    }
     if (req.files && req.files.videoFile && req.files.videoFile.length > 0) {
       videoFileLocalPath = req.files.videoFile[0].path;
     }
-    let thumbnailLocalPath /* = req.files?.thumbnail[0]?.path*/;
 
     if (req.files && req.files.thumbnail && req.files.thumbnail.length > 0) {
       thumbnailLocalPath = req.files.thumbnail[0].path;
@@ -47,8 +63,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     console.log(`${videoFileLocalPath} <----> ${thumbnailLocalPath}`);
 
-    if (!videoFileLocalPath && !thumbnailLocalPath) {
-      throw new ApiError(400, "video file and thumbnail are required");
+    if (!videoFileLocalPath || !thumbnailLocalPath) {
+      // throw new ApiError(400, "video file and thumbnail are required");
+      return res
+        .status(401)
+        .json(new ApiError(401, {}, "video file and thumbnail are required"));
     }
 
     const videoFileLink = await uploadOnCloudinary(videoFileLocalPath);
@@ -65,7 +84,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     const video = await Video.findById(videoObject._id).populate({
       path: "owner",
-      select: "username email fullname avatar coverImage",
+      select: "username email fullName avatar coverImage",
     });
 
     return res
@@ -73,8 +92,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
       .json(new ApiResponse(200, video, "video uploaded successfully"));
   } catch (error) {
     console.log("user not able to upload video on cloud");
-
-    return res.status(200).json(new ApiError(500, "Failed to upload "));
+    return res.status(500).json(new ApiError(500, {}, "Failed to upload "));
   }
 });
 
@@ -83,7 +101,7 @@ const getVideoById = asyncHandler(async (req, res) => {
   try {
     const videoObject = await Video.findById(videoId).populate({
       path: "owner",
-      select: "username email fullname avatar coverImage",
+      select: "username email fullName avatar coverImage",
     });
     return res
       .status(200)
@@ -110,12 +128,12 @@ const deleteVideo = asyncHandler(async (req, res) => {
     const videoObject = await Video.findById(videoId).session(session);
 
     if (!videoObject) {
-      throw new ApiError(404, "Video not found");
+      throw new ApiError(404, {}, "Video not found");
     }
 
     // Check ownership
     if (videoObject.owner.toString() !== req.user._id.toString()) {
-      throw new ApiError(403, "Not authorized");
+      throw new ApiError(403, {}, "Not authorized");
     }
 
     // Try Cloudinary deletion first
@@ -142,6 +160,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     if (!cloudinarySuccess) {
       throw new ApiError(
         500,
+        {},
         `Cloudinary deletion failed: ${errorMessages.join(", ")}`
       );
     }
@@ -177,26 +196,33 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
   try {
     const videoObject = await Video.findById(videoId);
     if (!videoObject) {
-      throw new ApiError(404, "Video not found");
+      throw new ApiError(404, {}, "Video not found");
     }
 
     // Check ownership
     if (videoObject.owner.toString() !== req.user._id.toString()) {
-      throw new ApiError(403, "Not authorized");
+      throw new ApiError(403, {}, "Not authorized");
     }
-    console.log(!videoObject.isPublish);
-    
-    const video = await Video.findByIdAndUpdate(req.user._id, {
-      $set: { isPublish: !videoObject.isPublish },
+    console.log(!videoObject.isPublished);
+
+    const video = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        $set: { isPublished: !videoObject.isPublished },
+      },
+      { new: true }
+    ).populate({
+      path: "owner",
+      select: "username email fullName avatar coverImage",
     });
 
     return res
       .status(200)
-      .json(new ApiResponse(200, {}, "toggle published video controller"));
+      .json(new ApiResponse(200, video, "toggle published video controller"));
   } catch (error) {
     return res
       .status(500)
-      .json(new ApiError(500, "Enable to change video state"));
+      .json(new ApiError(500, {}, "Enable to change video state"));
   }
 });
 
