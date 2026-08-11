@@ -112,9 +112,22 @@ const getVideoById = asyncHandler(async (req, res) => {
   //   Todo: get video by id
 });
 
-const updateVideo = asyncHandler(async (req, res) => {
+const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //   Todo: update video details like, title, description,thumbnail
+  const userId = req.user.id.toString();
+  try {
+    const videoObject = Video.findById(videoId);
+
+    if (!videoObject) {
+      throw new ApiError(404, {}, "Video not found");
+    }
+    // Check ownership
+    if (videoObject.owner.toString() !== userId) {
+      throw new ApiError(403, {}, "Not authorized");
+    }
+    
+  } catch (error) {}
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
