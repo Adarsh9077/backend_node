@@ -103,9 +103,12 @@ const getVideoById = asyncHandler(async (req, res) => {
       path: "owner",
       select: "username email fullName avatar coverImage",
     });
+    if (!videoObject) {
+      return res.status(404).json(new ApiError(404, {}, "Video not found"));
+    }
     return res
       .status(200)
-      .json(new ApiResponse(200, videoObject, "checking getVideoById"));
+      .json(new ApiResponse(200, videoObject, "Video found Successfully"));
   } catch (error) {
     return res.status(500).json(new ApiError(500, {}, "Video not found"));
   }
@@ -114,10 +117,22 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const { title, description } = req.body;
   //   Todo: update video details like, title, description,thumbnail
   const userId = req.user.id.toString();
   try {
-    const videoObject = Video.findById(videoId);
+    if (!title || !description) {
+      return res
+        .status(401)
+        .json(
+          new ApiError(
+            401,
+            { title: "not found", description: "not found" },
+            "title and description are required"
+          )
+        );
+    }
+    const videoObject = await Video.findById(videoId);
 
     if (!videoObject) {
       throw new ApiError(404, {}, "Video not found");
@@ -126,7 +141,10 @@ const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
     if (videoObject.owner.toString() !== userId) {
       throw new ApiError(403, {}, "Not authorized");
     }
-    
+    // const newVideoObject = await Video.findByIdAndUpdate(videoId, { $set: {} });
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "updateVideoTitleAndDescription"));
   } catch (error) {}
 });
 
@@ -243,7 +261,7 @@ export {
   publishAVideo,
   getAllVideos,
   getVideoById,
-  updateVideo,
+  updateVideoTitleAndDescription,
   deleteVideo,
   togglePublishStatus,
 };
