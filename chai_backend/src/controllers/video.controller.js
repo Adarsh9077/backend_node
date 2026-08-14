@@ -73,6 +73,15 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const videoFileLink = await uploadOnCloudinary(videoFileLocalPath);
     const thumbnailLink = await uploadOnCloudinary(thumbnailLocalPath);
 
+    if (!videoFileLink.url || !thumbnailLink.url) {
+      // throw new ApiError(400, "video file and thumbnail are required");
+      return res
+        .status(401)
+        .json(
+          new ApiError(401, {}, "Error while uploading on video or thumbnail")
+        );
+    }
+
     const videoObject = await Video.create({
       videoFile: videoFileLink.url,
       thumbnail: thumbnailLink.url,
@@ -118,7 +127,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { title, description } = req.body;
-  //   Todo: update video details like, title, description,thumbnail
+  //   Todo: update video details like, title, description
   const userId = req.user.id.toString();
   try {
     if (!title || !description) {
@@ -141,10 +150,81 @@ const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
     if (videoObject.owner.toString() !== userId) {
       throw new ApiError(403, {}, "Not authorized");
     }
-    // const newVideoObject = await Video.findByIdAndUpdate(videoId, { $set: {} });
+    const newVideoObject = await Video.findByIdAndUpdate(
+      videoId,
+      { $set: { title, description } },
+      { new: true }
+    );
     return res
       .status(200)
-      .json(new ApiResponse(200, {}, "updateVideoTitleAndDescription"));
+      .json(
+        new ApiResponse(
+          200,
+          newVideoObject,
+          "title and description was updated"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(
+      401,
+      {},
+      error?.message || "video not found or something else"
+    );
+  }
+});
+
+const updateVideoThumbnail = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  try {
+    const videoObject = await Video.findById(videoId);
+    if (!videoObject) {
+      return res.status(404).json(new ApiError(404, {}, "Video not found"));
+    }
+
+    if (req.user._id !== videoObject.owner.toString()) {
+      return res.status(401).json(new ApiError(401, {}, "Unauthorized User"));
+    }
+
+    let thumbnailLocalPath;
+    if (req.files && req.files.thumbnail && req.files.thumbnail.length > 0) {
+      thumbnailLocalPath = req.files.thumbnail[0].path;
+    }
+    if (!thumbnailLocalPath) {
+      throw new ApiError(400, "video file and thumbnail are required");
+      return res
+        .status(401)
+        .json(new ApiError(401, {}, "Thumbnail is required"));
+    }
+    const thumbnailLink = await uploadOnCloudinary(thumbnailLocalPath);
+
+    if (!thumbnailLink.url) {
+      return res
+        .status(401)
+        .json(
+          new ApiError(401, {}, "Error while uploading on video or thumbnail")
+        );
+    }
+    const newVideoObject = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        $set: { thumbnail: thumbnailLink.url },
+      },
+      { new: true }
+    );
+
+    const deleteResult = await deleteOnCloudinary(videoObject.thumbnail);
+    console.log(`${deleteResult.result}`);
+
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          201,
+          newVideoObject,
+          "Thumbnail controller in on progress"
+        )
+      );
+    // }
   } catch (error) {}
 });
 
@@ -261,7 +341,8 @@ export {
   publishAVideo,
   getAllVideos,
   getVideoById,
-  updateVideoTitleAndDescription,
   deleteVideo,
   togglePublishStatus,
+  updateVideoThumbnail,
+  updateVideoTitleAndDescription,
 };
