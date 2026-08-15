@@ -128,7 +128,7 @@ const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { title, description } = req.body;
   //   Todo: update video details like, title, description
-  const userId = req.user.id.toString();
+  const userId = req.user._id.toString();
   try {
     if (!title || !description) {
       return res
@@ -181,7 +181,7 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
       return res.status(404).json(new ApiError(404, {}, "Video not found"));
     }
 
-    if (req.user._id !== videoObject.owner.toString()) {
+    if (req.user._id.toString() !== videoObject.owner.toString()) {
       return res.status(401).json(new ApiError(401, {}, "Unauthorized User"));
     }
 
@@ -226,6 +226,62 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
       );
     // }
   } catch (error) {}
+});
+
+const updateVideoFile = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  try {
+    const videoObject = await Video.findById(videoId);
+    if (!videoObject) {
+      return res.status(404).json(new ApiError(404, {}, "Video not found"));
+    }
+
+    if (req.user._id !== videoObject.owner.toString()) {
+      return res.status(401).json(new ApiError(401, {}, "Unauthorized User"));
+    }
+
+    let videoLocalPath;
+    if (req.files && req.files.video && req.files.video.length > 0) {
+      thumbnailLocalPath = req.files.video[0].path;
+    }
+    if (!videoLocalPath) {
+      throw new ApiError(400, "video file and thumbnail are required");
+      return res
+        .status(401)
+        .json(new ApiError(401, {}, "Thumbnail is required"));
+    }
+    const videoLink = await uploadOnCloudinary(videoLocalPath);
+
+    if (!videoLink.url) {
+      return res
+        .status(401)
+        .json(
+          new ApiError(401, {}, "Error while uploading on video or thumbnail")
+        );
+    }
+    const newVideoObject = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        $set: { video: videoLink.url },
+      },
+      { new: true }
+    );
+
+    const deleteResult = await deleteOnCloudinary(videoObject.video);
+    console.log(`${deleteResult.result}`);
+
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          201,
+          newVideoObject,
+          "video update controller in on progress"
+        )
+      );
+  } catch (error) {
+    return res.status(500).json(new ApiError());
+  }
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
@@ -342,6 +398,7 @@ export {
   getAllVideos,
   getVideoById,
   deleteVideo,
+  updateVideoFile,
   togglePublishStatus,
   updateVideoThumbnail,
   updateVideoTitleAndDescription,

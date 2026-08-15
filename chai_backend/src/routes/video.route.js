@@ -8,6 +8,7 @@ import {
   togglePublishStatus,
   updateVideoThumbnail,
   updateVideoTitleAndDescription,
+  updateVideoFile,
 } from "../controllers/video.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -30,6 +31,9 @@ router.route("/:videoId").get(getVideoById).delete(deleteVideo);
 router
   .route("/update-thumbnail/:videoId")
   .patch(upload.single("thumbnail"), updateVideoThumbnail);
+router
+  .route("/update-video/:videoId")
+  .patch(upload.single("video"), updateVideoFile);
 
 router
   .route("/update-title-desc/:videoId")
