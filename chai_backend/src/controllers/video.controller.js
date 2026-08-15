@@ -181,16 +181,17 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
       return res.status(404).json(new ApiError(404, {}, "Video not found"));
     }
 
-    if (req.user._id.toString() !== videoObject.owner.toString()) {
+    if (req.user._id.toString() != videoObject.owner.toString()) {
       return res.status(401).json(new ApiError(401, {}, "Unauthorized User"));
     }
 
     let thumbnailLocalPath;
-    if (req.files && req.files.thumbnail && req.files.thumbnail.length > 0) {
-      thumbnailLocalPath = req.files.thumbnail[0].path;
+    console.log(req.file);
+    if (req.file && req.file.path) {
+      thumbnailLocalPath = req.file.path;
     }
     if (!thumbnailLocalPath) {
-      throw new ApiError(400, "video file and thumbnail are required");
+      // throw new ApiError(400, "video file and thumbnail are required");
       return res
         .status(401)
         .json(new ApiError(401, {}, "Thumbnail is required"));
@@ -225,7 +226,14 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
         )
       );
     // }
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(
+        new ApiError(500, [error], "Not able to upload thumbNail")
+      );
+  }
 });
 
 const updateVideoFile = asyncHandler(async (req, res) => {
