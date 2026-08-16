@@ -230,9 +230,7 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
     console.log(error);
     return res
       .status(500)
-      .json(
-        new ApiError(500, [error], "Not able to upload thumbNail")
-      );
+      .json(new ApiError(500, [error], "Not able to upload thumbNail"));
   }
 });
 
@@ -249,14 +247,12 @@ const updateVideoFile = asyncHandler(async (req, res) => {
     }
 
     let videoLocalPath;
-    if (req.files && req.files.video && req.files.video.length > 0) {
-      thumbnailLocalPath = req.files.video[0].path;
+    if (req.files && req.file && req.file.path) {
+      videoLocalPath = req.file.path;
     }
     if (!videoLocalPath) {
-      throw new ApiError(400, "video file and thumbnail are required");
-      return res
-        .status(401)
-        .json(new ApiError(401, {}, "Thumbnail is required"));
+      // throw new ApiError(400, "video file and thumbnail are required");
+      return res.status(401).json(new ApiError(401, {}, "video is required"));
     }
     const videoLink = await uploadOnCloudinary(videoLocalPath);
 
@@ -288,7 +284,9 @@ const updateVideoFile = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    return res.status(500).json(new ApiError());
+    return res
+      .status(500)
+      .json(new ApiError(404, {}, "Error video not uploaded"));
   }
 });
 
