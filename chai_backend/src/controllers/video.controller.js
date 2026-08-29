@@ -107,23 +107,110 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  try {
-    const videoObject = await Video.findById(videoId).populate({
-      path: "owner",
-      select: "username email fullName avatar coverImage",
-    });
-    if (!videoObject) {
-      return res.status(404).json(new ApiError(404, {}, "Video not found"));
-    }
-    return res
-      .status(200)
-      .json(new ApiResponse(200, videoObject, "Video found Successfully"));
-  } catch (error) {
-    return res.status(500).json(new ApiError(500, {}, "Video not found"));
-  }
-  //   Todo: get video by id
-});
 
+  // 1. Check and increment views
+  const video = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      $inc: { views: 1 },
+    },
+    {
+      new: true,
+    }
+  );
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  // 2. Get complete video details
+  const videoObject = await Video.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(videoId),
+      },
+    },
+
+    // Video Owner
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              email: 1,
+              fullName: 1,
+              avatar: 1,
+              coverImage: 1,
+            },
+          },
+        ],
+      },
+    },
+
+    {
+      $addFields: {
+        owner: {
+          $first: "$owner",
+        },
+      },
+    },
+
+    // Comments
+    {
+      $lookup: {
+        from: "comments",
+        let: {
+          videoId: "$_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$video", "$$videoId"],
+              },
+            },
+          },
+
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+        as: "comments",
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videoObject[0], "Video found successfully"));
+});
 const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { title, description } = req.body;
