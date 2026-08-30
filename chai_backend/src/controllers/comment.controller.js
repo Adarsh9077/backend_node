@@ -51,6 +51,18 @@ const updateComment = asyncHandler(async (req, res) => {
         .status(402)
         .json(new ApiError(402, {}, "Comment id and content are required"));
     }
+    const commentObject = await Comment.findByIdAndUpdate(
+      commentId,
+      {
+        $set: { content },
+      },
+      { new: true }
+    );
+    return res
+      .status(202)
+      .json(
+        new ApiResponse(202, commentObject, "comment updated successfully")
+      );
   } catch (error) {
     console.log(error);
     return res.status(501).json(new ApiError(501, {}, "Server not responding"));
