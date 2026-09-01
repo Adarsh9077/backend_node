@@ -8,7 +8,16 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
   try {
-  } catch (error) {}
+    if (!videoId) {
+      return res.status(402).json(new ApiError(402, {}, "Video is required"));
+    }
+
+    return res
+      .status(202)
+      .json(new ApiResponse(202, {}, "getVideoComments controller"));
+  } catch (error) {
+    return res.status(501).json(new ApiError(501, {}, "comment not founds"));
+  }
 });
 
 const addComment = asyncHandler(async (req, res) => {
