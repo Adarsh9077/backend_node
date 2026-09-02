@@ -2,19 +2,35 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Comment } from "../models/comment.model.js";
+import mongoose from "mongoose";
 
 const getVideoComments = asyncHandler(async (req, res) => {
   //Todo: get all comments for a video
   const { videoId } = req.params;
   const { page = 1, limit = 10 } = req.query;
   try {
-    if (!videoId) {
-      return res.status(402).json(new ApiError(402, {}, "Video is required"));
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      return res.status(400).json(new ApiError(400, {}, "Invalid video ID"));
     }
-
+    const pageNumber = Math.max(Number(page) || 1, 1);
+    const limitNumber = Math.min(Math.max(Number(limit) || 10, 1), 100);
+    const option = {
+      page: pageNumber,
+      limit: limitNumber,
+    };
+    const commentOject = await Comment.aggregatePaginate(
+      [
+        {
+          $match: {
+            video: new mongoose.Types.ObjectId(videoId),
+          },
+        },
+      ],
+      option
+    );
     return res
       .status(202)
-      .json(new ApiResponse(202, {}, "getVideoComments controller"));
+      .json(new ApiResponse(202, commentOject, "getVideoComments controller"));
   } catch (error) {
     return res.status(501).json(new ApiError(501, {}, "comment not founds"));
   }
