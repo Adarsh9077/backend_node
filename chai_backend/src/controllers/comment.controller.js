@@ -25,6 +25,32 @@ const getVideoComments = asyncHandler(async (req, res) => {
             video: new mongoose.Types.ObjectId(videoId),
           },
         },
+        {
+          $lookup: {
+            from: "users",
+            localField: "owner",
+            foreignField: "_id",
+            as: "owner",
+            pipeline: [
+              {
+                $project: {
+                  username: 1,
+                  email: 1,
+                  fullName: 1,
+                  avatar: 1,
+                },
+              },
+            ],
+            
+          },
+        },
+        {
+          $addFields: {
+            owner: {
+              $first: "$owner",
+            },
+          },
+        },
       ],
       option
     );
