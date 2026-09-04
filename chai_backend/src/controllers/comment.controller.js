@@ -41,7 +41,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
                 },
               },
             ],
-            
           },
         },
         {
@@ -51,12 +50,33 @@ const getVideoComments = asyncHandler(async (req, res) => {
             },
           },
         },
+        {
+          $project: {
+            _id: 1,
+            content: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            owner: 1,
+          },
+        },
+        {
+          $sort: {
+            createdAt: -1,
+          },
+        },
       ],
       option
     );
+
+    const comments = commentOject["docs"];
+    console.log(commentOject["totalDocs"]);
+    console.log(commentOject["totalPages"]);
+    console.log(commentOject["page"]);
+    console.log(commentOject["limit"]);
+    console.log(commentOject["limit"]);
     return res
       .status(202)
-      .json(new ApiResponse(202, commentOject, "getVideoComments controller"));
+      .json(new ApiResponse(202, comments, "getVideoComments controller"));
   } catch (error) {
     return res.status(501).json(new ApiError(501, {}, "comment not founds"));
   }
