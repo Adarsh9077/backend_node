@@ -69,14 +69,29 @@ const getVideoComments = asyncHandler(async (req, res) => {
     );
 
     const comments = commentOject["docs"];
+    const paginationData = {
+      currentPage: commentOject["page"],
+      limit: commentOject["limit"],
+      totalComments: commentOject["totalDocs"],
+      totalPages: commentOject["totalPages"],
+      hasNextPage: commentOject["hasNextPage"],
+      hasPrevPage: commentOject["hasPrevPage"],
+    };
     console.log(commentOject["totalDocs"]);
     console.log(commentOject["totalPages"]);
     console.log(commentOject["page"]);
     console.log(commentOject["limit"]);
-    console.log(commentOject["limit"]);
+    console.log(commentOject["hasNextPage"]);
+    console.log(commentOject["hasPrevPage"]);
     return res
       .status(202)
-      .json(new ApiResponse(202, comments, "getVideoComments controller"));
+      .json(
+        new ApiResponse(
+          202,
+          { comments: comments, pagination: paginationData },
+          "getVideoComments controller"
+        )
+      );
   } catch (error) {
     return res.status(501).json(new ApiError(501, {}, "comment not founds"));
   }
