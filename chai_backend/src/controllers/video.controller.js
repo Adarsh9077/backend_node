@@ -12,6 +12,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   try {
     //   Todo: get all videos based on query, sort, pagination
+
+    //! const videoObject = await Video.aggregatePaginate([], {});
+
     const videoList = await Video.find({}).populate({
       path: "owner",
       select: "username email fullName avatar coverImage",

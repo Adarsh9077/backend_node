@@ -77,12 +77,6 @@ const getVideoComments = asyncHandler(async (req, res) => {
       hasNextPage: commentOject["hasNextPage"],
       hasPrevPage: commentOject["hasPrevPage"],
     };
-    console.log(commentOject["totalDocs"]);
-    console.log(commentOject["totalPages"]);
-    console.log(commentOject["page"]);
-    console.log(commentOject["limit"]);
-    console.log(commentOject["hasNextPage"]);
-    console.log(commentOject["hasPrevPage"]);
     return res
       .status(202)
       .json(
