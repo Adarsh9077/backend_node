@@ -2,6 +2,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Comment } from "../models/comment.model.js";
+import option from "../utils/pagination_options.js";
 import mongoose from "mongoose";
 
 const getVideoComments = asyncHandler(async (req, res) => {
@@ -12,12 +13,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(videoId)) {
       return res.status(400).json(new ApiError(400, {}, "Invalid video ID"));
     }
-    const pageNumber = Math.max(Number(page) || 1, 1);
-    const limitNumber = Math.min(Math.max(Number(limit) || 10, 1), 100);
-    const option = {
-      page: pageNumber,
-      limit: limitNumber,
-    };
+    
     const commentOject = await Comment.aggregatePaginate(
       [
         {
@@ -65,7 +61,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
           },
         },
       ],
-      option
+      option(page, limit)
     );
 
     const comments = commentOject["docs"];

@@ -5,15 +5,25 @@ import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
 import fs from "fs";
+import option from "../utils/pagination_options.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy } = req.query;
-  console.log(req.query);
 
   try {
     //   Todo: get all videos based on query, sort, pagination
-
-    //! const videoObject = await Video.aggregatePaginate([], {});
+    console.log("\n<-------------->\n");
+    const videoObject = await Video.aggregatePaginate(
+      [
+        {
+          $sort: {
+            created: -1,
+          },
+        },
+      ],
+      option(page, limit)
+    );
+    console.log(videoObject);
 
     const videoList = await Video.find({}).populate({
       path: "owner",
@@ -118,7 +128,7 @@ const getVideoById = asyncHandler(async (req, res) => {
       $inc: { views: 1 },
     },
     {
-      new: true,
+      returnDocument: "after",
     }
   );
 
@@ -243,7 +253,7 @@ const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
     const newVideoObject = await Video.findByIdAndUpdate(
       videoId,
       { $set: { title, description } },
-      { new: true }
+      { returnDocument: "after" }
     );
     return res
       .status(200)
@@ -300,7 +310,7 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
       {
         $set: { thumbnail: thumbnailLink.url },
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     const deleteResult = await deleteOnCloudinary(videoObject.thumbnail);
@@ -358,7 +368,7 @@ const updateVideoFile = asyncHandler(async (req, res) => {
       {
         $set: { video: videoLink.url },
       },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     const deleteResult = await deleteOnCloudinary(videoObject.video);
@@ -473,7 +483,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
       {
         $set: { isPublished: !videoObject.isPublished },
       },
-      { new: true }
+      { returnDocument: "after" }
     ).populate({
       path: "owner",
       select: "username email fullName avatar coverImage",
