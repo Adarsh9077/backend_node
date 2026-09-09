@@ -24,6 +24,15 @@ const getAllVideos = asyncHandler(async (req, res) => {
       option(page, limit)
     );
     console.log(videoObject);
+    const videos = videoObject["docs"];
+    const paginationData = {
+      currentPage: commentObject["page"],
+      limit: videoOject["limit"],
+      totalComments: videoObject["totalDocs"],
+      totalPages: videoObject["totalPages"],
+      hasNextPage: videoObject["hasNextPage"],
+      hasPrevPage: videoObject["hasPrevPage"],
+    };
 
     const videoList = await Video.find({}).populate({
       path: "owner",
