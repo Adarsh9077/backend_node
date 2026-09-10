@@ -21,27 +21,27 @@ const getAllVideos = asyncHandler(async (req, res) => {
           },
         },
       ],
-      option(page, limit)
+      option({ page: page, limit: limit })
     );
     console.log(videoObject);
     const videos = videoObject["docs"];
     const paginationData = {
-      currentPage: commentObject["page"],
-      limit: videoOject["limit"],
-      totalComments: videoObject["totalDocs"],
+      currentPage: videoObject["page"],
+      limit: videoObject["limit"],
+      totalVideos: videoObject["totalDocs"],
       totalPages: videoObject["totalPages"],
       hasNextPage: videoObject["hasNextPage"],
       hasPrevPage: videoObject["hasPrevPage"],
     };
 
-    const videoList = await Video.find({}).populate({
-      path: "owner",
-      select: "username email fullName avatar coverImage",
-    });
     return res
       .status(200)
       .json(
-        new ApiResponse(200, { videos: videoList }, "checking getAllVideos")
+        new ApiResponse(
+          200,
+          { videos: videos, pagination: paginationData },
+          "checking getAllVideos"
+        )
       );
   } catch (error) {
     return res
@@ -51,7 +51,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, description, isPublished } = req.body;
+  const { title, description, isPublished = false } = req.body;
   console.log(
     `title -> ${title}\ndescription -> ${description}\n- \t----------\t -\n`
   );
@@ -59,8 +59,13 @@ const publishAVideo = asyncHandler(async (req, res) => {
   try {
     let videoFileLocalPath;
     let thumbnailLocalPath /* = req.files?.thumbnail[0]?.path*/;
+    const str = isPublished.toLowerCase();
+    if (str !== "true" && str !== "false") {
+      throw new ApiError(402, "isPublished can be true or false");
+    }
+    console.log(typeof true);
     // 1. VALIDATE INPUT FIELDS
-    if (!title || !description || typeof isPublished !== "boolean") {
+    if (!title || !description) {
       // Clean up any uploaded files if validation fails
       if (req.files) {
         if (req.files.videoFile) {
@@ -84,24 +89,24 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
 
     console.log(`${videoFileLocalPath} <----> ${thumbnailLocalPath}`);
-
-    if (!videoFileLocalPath || !thumbnailLocalPath) {
-      // throw new ApiError(400, "video file and thumbnail are required");
-      return res
-        .status(401)
-        .json(new ApiError(401, {}, "video file and thumbnail are required"));
-    }
-
     const videoFileLink = await uploadOnCloudinary(videoFileLocalPath);
     const thumbnailLink = await uploadOnCloudinary(thumbnailLocalPath);
 
+    if (!videoFileLink?.url) {
+      throw new ApiError(500, "Failed to upload video to Cloudinary");
+    }
+
+    if (!thumbnailLink?.url) {
+      throw new ApiError(500, "Failed to upload thumbnail to Cloudinary");
+    }
+
     if (!videoFileLink.url || !thumbnailLink.url) {
-      // throw new ApiError(400, "video file and thumbnail are required");
-      return res
-        .status(401)
-        .json(
-          new ApiError(401, {}, "Error while uploading on video or thumbnail")
-        );
+      throw new ApiError(400, "video file and thumbnail are required");
+      // return res
+      //   .status(401)
+      //   .json(
+      //     new ApiError(401, {}, "Error while uploading on video or thumbnail")
+      //   );
     }
 
     const videoObject = await Video.create({
@@ -111,6 +116,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
       description,
       duration: videoFileLink.duration,
       owner: req.user._id,
+      isPublished: str,
     });
 
     const video = await Video.findById(videoObject._id).populate({
@@ -122,8 +128,16 @@ const publishAVideo = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, video, "video uploaded successfully"));
   } catch (error) {
-    console.log("user not able to upload video on cloud");
-    return res.status(500).json(new ApiError(500, {}, "Failed to upload "));
+    console.error("=================================");
+    console.error("Publish Video Error");
+    console.error("=================================");
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
+    return res
+      .status(500)
+      .json(
+        new ApiError(500, error.stack, error.message + "  \n Failed to upload ")
+      );
   }
 });
 

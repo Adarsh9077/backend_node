@@ -13,8 +13,8 @@ const getVideoComments = asyncHandler(async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(videoId)) {
       return res.status(400).json(new ApiError(400, {}, "Invalid video ID"));
     }
-    
-    const commentOject = await Comment.aggregatePaginate(
+
+    const commentObject = await Comment.aggregatePaginate(
       [
         {
           $match: {
@@ -61,17 +61,17 @@ const getVideoComments = asyncHandler(async (req, res) => {
           },
         },
       ],
-      option(page, limit)
+      option({ page: page, limit: limit })
     );
 
-    const comments = commentOject["docs"];
+    const comments = commentObject["docs"];
     const paginationData = {
-      currentPage: commentOject["page"],
-      limit: commentOject["limit"],
-      totalComments: commentOject["totalDocs"],
-      totalPages: commentOject["totalPages"],
-      hasNextPage: commentOject["hasNextPage"],
-      hasPrevPage: commentOject["hasPrevPage"],
+      currentPage: commentObject["page"],
+      limit: commentObject["limit"],
+      totalComments: commentObject["totalDocs"],
+      totalPages: commentObject["totalPages"],
+      hasNextPage: commentObject["hasNextPage"],
+      hasPrevPage: commentObject["hasPrevPage"],
     };
     return res
       .status(202)
@@ -79,11 +79,11 @@ const getVideoComments = asyncHandler(async (req, res) => {
         new ApiResponse(
           202,
           { comments: comments, pagination: paginationData },
-          "getVideoComments controller"
+          "Comments "
         )
       );
   } catch (error) {
-    return res.status(501).json(new ApiError(501, {}, "comment not founds"));
+    return res.status(501).json(new ApiError(501, {}, "comments not founds"));
   }
 });
 
