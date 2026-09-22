@@ -102,11 +102,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     if (!videoFileLink.url || !thumbnailLink.url) {
       throw new ApiError(400, "video file and thumbnail are required");
-      // return res
-      //   .status(401)
-      //   .json(
-      //     new ApiError(401, {}, "Error while uploading on video or thumbnail")
-      //   );
     }
 
     const videoObject = await Video.create({
@@ -133,11 +128,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     console.error("=================================");
     console.error("Message:", error.message);
     console.error("Stack:", error.stack);
-    return res
-      .status(500)
-      .json(
-        new ApiError(500, error.stack, error.message + "  \n Failed to upload ")
-      );
+    new ApiError(500, error.stack, error.message + "  \n Failed to upload ");
   }
 });
 
