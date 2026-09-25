@@ -3,7 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Comment } from "../models/comment.model.js";
 import option from "../utils/pagination_options.js";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
 const getVideoComments = asyncHandler(async (req, res) => {
   //Todo: get all comments for a video
@@ -93,7 +93,7 @@ const addComment = asyncHandler(async (req, res) => {
   const { userId } = req.user._id;
   const { content } = req.body;
   try {
-    if (!videoId || !content) {
+    if (!mongoose.Types.ObjectId.isValid(videoId) || !content) {
       return res
         .status(401)
         .json(new ApiError(401, {}, "video id and content are required"));
@@ -122,7 +122,7 @@ const updateComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
   const { content } = req.body;
   try {
-    if (!commentId || !content) {
+    if (!mongoose.Types.ObjectId.isValid(commentId) || !content) {
       return res
         .status(402)
         .json(new ApiError(402, {}, "Comment id and content are required"));
@@ -150,7 +150,7 @@ const deleteComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
   //Todo: delete a comment
   try {
-    if (!commentId) {
+    if (!mongoose.Types.ObjectId.isValid(commentId)) {
       return res.status(401).json(new ApiError(401, {}, "comment is required"));
     }
 

@@ -6,6 +6,18 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  try {
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(401, {}, "video id required");
+    }
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(201, {}, "testing of toggle Video like controller")
+      );
+  } catch (error) {
+    throw new ApiError(401, {}, "video id required");
+  }
   //TODO: toggle like on video
 });
 

@@ -15,7 +15,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const { page = 1, limit = 20, sortBy = "asc" } = req.query;
   try {
-    if (!channelId) {
+    if (!mongoose.Types.ObjectId.isValid(channelId)) {
       throw new ApiError(401, {}, "Channel Id is required");
     }
     console.log(channelId);

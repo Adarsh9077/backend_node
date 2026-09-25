@@ -135,108 +135,115 @@ const publishAVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
 
-  // 1. Check and increment views
-  const video = await Video.findByIdAndUpdate(
-    videoId,
-    {
-      $inc: { views: 1 },
-    },
-    {
-      returnDocument: "after",
+  try {
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(401, "video id is required");
     }
-  );
-
-  if (!video) {
-    throw new ApiError(404, "Video not found");
-  }
-
-  // 2. Get complete video details
-  const videoObject = await Video.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(videoId),
+    // 1. Check and increment views
+    const video = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        $inc: { views: 1 },
       },
-    },
+      {
+        returnDocument: "after",
+      }
+    );
 
-    // Video Owner
-    {
-      $lookup: {
-        from: "users",
-        localField: "owner",
-        foreignField: "_id",
-        as: "owner",
-        pipeline: [
-          {
-            $project: {
-              username: 1,
-              email: 1,
-              fullName: 1,
-              avatar: 1,
-              coverImage: 1,
-            },
-          },
-        ],
-      },
-    },
+    if (!video) {
+      throw new ApiError(404, "Video not found");
+    }
 
-    {
-      $addFields: {
-        owner: {
-          $first: "$owner",
+    // 2. Get complete video details
+    const videoObject = await Video.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(videoId),
         },
       },
-    },
 
-    // Comments
-    {
-      $lookup: {
-        from: "comments",
-        let: {
-          videoId: "$_id",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$video", "$$videoId"],
+      // Video Owner
+      {
+        $lookup: {
+          from: "users",
+          localField: "owner",
+          foreignField: "_id",
+          as: "owner",
+          pipeline: [
+            {
+              $project: {
+                username: 1,
+                email: 1,
+                fullName: 1,
+                avatar: 1,
+                coverImage: 1,
               },
             },
-          },
+          ],
+        },
+      },
 
-          {
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "owner",
-              pipeline: [
-                {
-                  $project: {
-                    fullName: 1,
-                    username: 1,
-                    avatar: 1,
-                  },
+      {
+        $addFields: {
+          owner: {
+            $first: "$owner",
+          },
+        },
+      },
+
+      // Comments
+      {
+        $lookup: {
+          from: "comments",
+          let: {
+            videoId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$video", "$$videoId"],
                 },
-              ],
-            },
-          },
-
-          {
-            $addFields: {
-              owner: {
-                $first: "$owner",
               },
             },
-          },
-        ],
-        as: "comments",
-      },
-    },
-  ]);
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, videoObject[0], "Video found successfully"));
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  {
+                    $project: {
+                      fullName: 1,
+                      username: 1,
+                      avatar: 1,
+                    },
+                  },
+                ],
+              },
+            },
+
+            {
+              $addFields: {
+                owner: {
+                  $first: "$owner",
+                },
+              },
+            },
+          ],
+          as: "comments",
+        },
+      },
+    ]);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, videoObject[0], "Video found successfully"));
+  } catch (error) {
+    throw new ApiError(401, "video is not found try again");
+  }
 });
 const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -254,6 +261,9 @@ const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
             "title and description are required"
           )
         );
+    }
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(401, "Video id is required");
     }
     const videoObject = await Video.findById(videoId);
 
@@ -290,6 +300,11 @@ const updateVideoTitleAndDescription = asyncHandler(async (req, res) => {
 const updateVideoThumbnail = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   try {
+    console.log("object thumb1 --> " + `${videoId}`);
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      console.log("object thumb2 ");
+      throw new ApiError(401, {}, "video id required");
+    }
     const videoObject = await Video.findById(videoId);
     if (!videoObject) {
       return res.status(404).json(new ApiError(404, {}, "Video not found"));
@@ -342,15 +357,16 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
     // }
   } catch (error) {
     console.log(error);
-    return res
-      .status(500)
-      .json(new ApiError(500, [error], "Not able to upload thumbNail"));
+    throw new ApiError(500, [error], "Not able to upload thumbNail");
   }
 });
 
 const updateVideoFile = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   try {
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(401, "video id is required");
+    }
     const videoObject = await Video.findById(videoId);
     if (!videoObject) {
       return res.status(404).json(new ApiError(404, {}, "Video not found"));
@@ -412,6 +428,9 @@ const deleteVideo = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(401, "video id is required");
+    }
     const videoObject = await Video.findById(videoId).session(session);
 
     if (!videoObject) {
@@ -479,8 +498,10 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  console.log(req.params);
   try {
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(401, "video id is required");
+    }
     const videoObject = await Video.findById(videoId);
     if (!videoObject) {
       throw new ApiError(404, {}, "Video not found");
