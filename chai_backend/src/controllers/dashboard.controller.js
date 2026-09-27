@@ -34,7 +34,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     );
     return res
       .status(202)
-      .json(new ApiResponse(202, channelsListedVideos, "Testing......."));
+      .json(new ApiResponse(202, channelsListedVideos, "List of videos"));
   } catch (error) {
     throw new ApiError(501, {}, "Channel not found,Try again");
   }
