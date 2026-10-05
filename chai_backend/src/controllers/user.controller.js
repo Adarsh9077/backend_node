@@ -165,13 +165,28 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const deleteUser = asyncHandler(async (req, res) => {
   const query = { email: `${req.user.email}` };
+  const coverImgUrl = req.user.coverImage;
+  const avatarImgUrl = req.user.avatar;
+  console.log(coverImgUrl + " " + avatarImgUrl + " --> " + query.email);
 
-  const result = await User.deleteOne(query);
-  console.log(await result.deletedCount);
+  try {
+    if (!coverImgUrl) {
+      const deleteCoverImgResult = await deleteOnCloudinary(coverImgUrl);
+      console.log(deleteCoverImgResult.message);
+    }
+    const deleteAvatarImgResult = await deleteOnCloudinary(avatarImgUrl);
+    const result = await User.deleteOne(query);
+    console.log(
+      result.deletedCount + " " +
+      deleteAvatarImgResult.message
+    );
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "user account delete successfully"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "user account delete successfully"));
+  } catch (error) {
+    throw new ApiError(404, {}, "Not able to delete");
+  }
 });
 
 const refreshTokenAccessToken = asyncHandler(async (req, res, next) => {
@@ -370,7 +385,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 const getWatchHistory = asyncHandler(async (req, res) => {
   const user = await User.aggregate([
     {
-      $match: { 
+      $match: {
         _id: new mongoose.Types.ObjectId(req.user._id),
       },
     },

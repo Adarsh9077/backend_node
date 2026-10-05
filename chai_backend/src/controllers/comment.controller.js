@@ -151,7 +151,7 @@ const deleteComment = asyncHandler(async (req, res) => {
   //Todo: delete a comment
   try {
     if (!mongoose.Types.ObjectId.isValid(commentId)) {
-      return res.status(401).json(new ApiError(401, {}, "comment is required"));
+      return res.status(401).json(new ApiError(401, {}, "comment Id is required"));
     }
 
     const commentObject = await Comment.findByIdAndDelete(commentId);
