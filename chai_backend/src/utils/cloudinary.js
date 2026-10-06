@@ -22,6 +22,53 @@ const uploadOnCloudinary = async (localFilePath) => {
     return null;
   }
 };
+const uploadLargeVideoOnCloudinary = async (localFilePath) => {
+  try {
+    if (!localFilePath) {
+      return null;
+    }
+
+    console.log("Starting large video upload...");
+    console.log("File:", localFilePath);
+
+    const response = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_chunked(
+        localFilePath,
+        {
+          resource_type: "video",
+          chunk_size: 20 * 1024 * 1024,
+        },
+        (error, result) => {
+          if (error) {
+            console.error("Cloudinary large video upload failed:");
+            console.error(error);
+
+            reject(error);
+            return;
+          }
+
+          resolve(result);
+        }
+      );
+    });
+
+    console.log("Large video uploaded successfully");
+    console.log("URL:", response.secure_url);
+
+    await fs.promises.unlink(localFilePath);
+
+    return response;
+  } catch (error) {
+    console.error("=================================");
+    console.error("Large Video Upload Error");
+    console.error("=================================");
+    console.error("Message:", error.message);
+    console.error("HTTP Code:", error.http_code);
+    console.error("Error:", error);
+
+    return null;
+  }
+};
 
 // const deleteOnCloudinary = async (publicUrl) => {
 //   try {
@@ -109,4 +156,4 @@ const extractPublicId = (url) => {
   }
 };
 
-export { uploadOnCloudinary, deleteOnCloudinary };
+export { uploadOnCloudinary, deleteOnCloudinary, uploadLargeVideoOnCloudinary };

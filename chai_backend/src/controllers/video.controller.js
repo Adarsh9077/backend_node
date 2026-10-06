@@ -1,7 +1,11 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteOnCloudinary,
+  uploadLargeVideoOnCloudinary,
+} from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
 import fs from "fs";
@@ -59,6 +63,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
   try {
     let videoFileLocalPath;
     let thumbnailLocalPath /* = req.files?.thumbnail[0]?.path*/;
+    let videoFileSize;
     const str = isPublished.toLowerCase();
     if (str !== "true" && str !== "false") {
       throw new ApiError(402, "isPublished can be true or false");
@@ -82,14 +87,23 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
     if (req.files && req.files.videoFile && req.files.videoFile.length > 0) {
       videoFileLocalPath = req.files.videoFile[0].path;
+      videoFileSize = req.files.videoFile[0].size;
+      // console.log(req.files.videoFile[0]);
     }
 
     if (req.files && req.files.thumbnail && req.files.thumbnail.length > 0) {
       thumbnailLocalPath = req.files.thumbnail[0].path;
     }
-
+    // ! add condition for size is more then 20 mb user normal else largeVideo function
     console.log(`${videoFileLocalPath} <----> ${thumbnailLocalPath}`);
-    const videoFileLink = await uploadOnCloudinary(videoFileLocalPath);
+
+    let videoFileLink;
+    if (videoFileSize > 20971500) {
+      videoFileLink = await uploadLargeVideoOnCloudinary(videoFileLocalPath);
+    } else {
+      videoFileLink = await uploadOnCloudinary(videoFileLocalPath);
+    }
+
     const thumbnailLink = await uploadOnCloudinary(thumbnailLocalPath);
 
     if (!videoFileLink?.url) {
@@ -119,9 +133,14 @@ const publishAVideo = asyncHandler(async (req, res) => {
       select: "username email fullName avatar coverImage",
     });
 
-    return res
-      .status(200)
-      .json(new ApiResponse(200, video, "video uploaded successfully"));
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        // {},
+        video,
+        "video uploaded successfully"
+      )
+    );
   } catch (error) {
     console.error("=================================");
     console.error("Publish Video Error");
