@@ -10,10 +10,25 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(videoId)) {
       throw new ApiError(401, {}, "video id required");
     }
+
+    const likeObject = await Like.create({
+      video: videoId,
+      likedBy: req.user._id,
+    });
+
+    const like = await Video.findById(likeObject._id).populate({
+      path: "owner",
+      select: "username email fullName avatar",
+    });
+
     return res
       .status(201)
       .json(
-        new ApiResponse(201, {}, "testing of toggle Video like controller")
+        new ApiResponse(
+          201,
+          like,
+          "This controller is on working"
+        )
       );
   } catch (error) {
     throw new ApiError(401, {}, "video id required");

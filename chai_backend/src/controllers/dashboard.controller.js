@@ -9,6 +9,7 @@ import option from "../utils/pagination_options.js";
 
 const getChannelStatus = asyncHandler(async (req, res) => {
   // TODO: Get the channel status like total video views, total subscribers, total videos, total likes etc.
+  
 });
 
 const getChannelVideos = asyncHandler(async (req, res) => {
@@ -43,4 +44,3 @@ const getChannelVideos = asyncHandler(async (req, res) => {
 });
 
 export { getChannelStatus, getChannelVideos };
-//! add large file uploader
