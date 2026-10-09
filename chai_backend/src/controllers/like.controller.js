@@ -52,19 +52,34 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(commentId)) {
       throw new ApiError(401, {}, "comment Id is required");
     }
-    const likeObject = await Like.create({
-      comment: commentId,
-      likedBy: req.user._id,
-    });
+    const likePipeline = await Like.aggregate([
+      {
+        $match: {
+          comment: new mongoose.Types.ObjectId(commentId),
+          likedBy: new mongoose.Types.ObjectId(req.user._id),
+        },
+      },
+    ]);
 
-    const like = await Like.findById(likeObject._id).populate({
-      path: "likedBy",
-      select: "username email fullName avatar",
-    });
+    let likeObject;
 
-    return res
-      .status(201)
-      .json(new ApiResponse(201, like, "This controller is on working"));
+    if (likePipeline[0] == null) {
+      likeObject = await Like.create({
+        comment: commentId,
+        likedBy: req.user._id,
+      });
+      like = await Like.findById(likeObject._id).populate({
+        path: "likedBy",
+        select: "username email fullName avatar",
+      });
+      return res.status(201).json(new ApiResponse(201, like, "Video is liked"));
+    } else {
+      // Todo: Delete like doc
+      const query = { _id: likePipeline[0]._id };
+      const deleteLikeResult = await Like.deleteOne(query);
+      // console.log(deleteLikeResult);
+      return res.status(201).json(new ApiResponse(201, "Like removed"));
+    }
   } catch (error) {
     throw new ApiError(401, {}, "video id required");
   }
